@@ -1,4 +1,5 @@
 import json
+from PIL import Image
 
 admin = {"admin": {"nome": "ADMIN",
                    "telefone": "",
@@ -6,7 +7,7 @@ admin = {"admin": {"nome": "ADMIN",
                    "senha": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
                    "email": "",
                    "ocupacao": "",
-                   "nota": ""}}
+                   "notas": []}}
 
 
 def saveEmployees(listOfEmployees):
@@ -43,3 +44,7 @@ def searchByCPF(personList, cpf):
         return personList[cpf]
     else:
         return False
+
+def openImage():
+    img = Image.open("PIX.jpeg")
+    img.show()

@@ -208,24 +208,89 @@ def menuReserva():
     match decisionInput:
         case "1":
             clear()
-            reserva = input("Digite a data da reserva(DD/MM/YYYY hh/mm): ")
-            
+            dataReserva = input("Digite a data da reserva(DD/MM/YYYY): ")
+            horarioReserva = input("Digite o horário da reserva: ")
+            cpfFuncionario = input("Digite o CPF do funcionário: ")
+            if cpfFuncionario in dataUtils.loadEmployees().keys():
+                reserva = {dataReserva : {
+                    "dataReserva" : dataReserva,
+                    "horarioReserva" : horarioReserva,
+                    "funcionarioReserva" : cpfFuncionario
+                }}
+            cpfCliente = input("Digite o CPF do cliente: ")
+            clientsDict = dataUtils.loadClients()
+            clientsDict[cpfCliente]["reservasAtivas"].update(reserva)
+            dataUtils.saveClients(clientsDict)
+        
+        case "2":
+            clear()
+            clientsDict = dataUtils.loadClients()
+            cpfCliente = input("Digite o CPF do cliente: ")
+            if cpfCliente in clientsDict.keys():
+                cliente = clientsDict[cpfCliente]
+                dataReserva = input("Digite a data da reserva a ser cancelada: ")
+                if dataReserva in cliente["reservasAtivas"]:
+                    del cliente["reservasAtivas"][dataReserva]
+                    dataUtils.saveClients(clientsDict)
+                else:
+                    print("Não existe nenhuma reserva nessa data.")
+                    delaySeconds(1)
+            else:
+                print("Não existe nenhum cliente com esse CPF.")
+                delaySeconds(1)
 
 
 def menuPagamento():
-    pass
+    clear()
+    clientsDict = dataUtils.loadClients()
+    employeeDict = dataUtils.loadEmployees()
+    print()
+    print("PyHair")
+    print("Realizar pagamentos")
+    print()
+    cpfClient = input("Digite o CPF do cliente: ")
+    if cpfClient in clientsDict.keys():
+        client = clientsDict[cpfClient]
+        dataReserva = input("Digite a data da reserva: ")
+        if dataReserva in client["reservasAtivas"]:
+            reserva = client["reservasAtivas"][dataReserva]
+            employee = employeeDict[reserva["funcionarioReserva"]]
+            preco = input("Digite o preço da reserva: ")
+            nota = float(input("Dê uma avaliação para o funcionário( 0 - 10 ): "))
+            clear()
+            print()
+            print(f"Nome do cliente: {client['nome']}")
+            print(f"Data da reserva: {reserva['dataReserva']}")
+            print(f"Horário da reserva: {reserva['horarioReserva']}")
+            print(f"Funcionário da reserva: {employee['nome']}")
+            print()
+            print(f"Preço da reserva: {preco}")
+            dataUtils.openImage()
+            del client["reservasAtivas"][dataReserva]
+            employee["notas"].append(nota)
+            employeeDict.update({employee["cpf"] : employee})
+            clientsDict[cpfClient]["reservasPagas"].update({reserva['dataReserva'] : reserva})
+            dataUtils.saveClients(clientsDict)
+            dataUtils.saveEmployees(employeeDict)
+            input("Aperte qualquer coisa para sair...")
 
 
 def listEmployees():
     clear()
     employeeDict = dataUtils.loadEmployees()
     for employee in employeeDict.values():
+        notas = employee["notas"]
+        if len(notas) != 0:
+            media = sum(notas) / len(notas)
+        else:
+            media = "Não tem avaliações"
         print()
         print(f"CPF (CHAVE DE BUSCA): {employee['cpf']}")
         print(f"NOME COMPLETO: {employee['nome']}")
         print(f"TELEFONE: {employee['telefone']}")
         print(f"E-MAIL: {employee['email']}")
         print(f"OCUPAÇÃO: {employee['ocupacao']}")
+        print(f"AVALIAÇÕES: {media}")
     print()
     input("Aperte qualquer tecla para sair...")
 
